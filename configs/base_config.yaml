@@ -8,16 +8,17 @@ paths:
 
 # ── Audio Preprocessing ────────────────────────────────────
 audio:
-  sample_rate: 4000        # Hz — sufficient for heart/lung sounds
-  segment_length: 3.0      # seconds per clip
+  sample_rate: 4000        # Hz — captures all heart/lung frequency content
+  segment_length: 3.0      # seconds — covers ~2-3 heart cycles at 60-80 BPM
+  overlap: 1.0             # seconds overlap — increases dataset size
   n_fft: 512
   hop_length: 128
-  n_mels: 64               # mel-spectrogram bands
+  n_mels: 64
 
 # ── Mixing Strategy ────────────────────────────────────────
 mixing:
-  snr_min_db: -5           # minimum signal-to-noise ratio
-  snr_max_db: 5            # maximum signal-to-noise ratio
+  snr_min_db: -5
+  snr_max_db: 5
 
 # ── Training ───────────────────────────────────────────────
 training:
@@ -30,5 +31,5 @@ training:
 
 # ── Model ──────────────────────────────────────────────────
 model:
-  name: "vae"              # options: vae, cvae, diffusion
+  name: "vae"
   latent_dim: 128
