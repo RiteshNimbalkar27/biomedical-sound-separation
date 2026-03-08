@@ -8,9 +8,9 @@ paths:
 
 # ── Audio Preprocessing ────────────────────────────────────
 audio:
-  sample_rate: 4000        # Hz — captures all heart/lung frequency content
-  segment_length: 3.0      # seconds — covers ~2-3 heart cycles at 60-80 BPM
-  overlap: 1.0             # seconds overlap — increases dataset size
+  sample_rate: 4000
+  segment_length: 3.0
+  overlap: 1.0
   n_fft: 512
   hop_length: 128
   n_mels: 64
@@ -31,5 +31,11 @@ training:
 
 # ── Model ──────────────────────────────────────────────────
 model:
+  # options:
+  #   vae        → Variational Autoencoder (start here)
+  #   cvae       → Conditional VAE
+  #   vqvae      → Vector Quantized VAE
+  #   unet       → U-Net masking (discriminative baseline)
+  #   diffusion  → Diffusion model (Colab only)
   name: "vae"
   latent_dim: 128
