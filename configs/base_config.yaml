@@ -1,0 +1,34 @@
+# ── Project Paths ──────────────────────────────────────────
+paths:
+  raw_physionet: "data/raw/physionet"
+  raw_icbhi: "data/raw/icbhi"
+  processed: "data/processed"
+  mixed: "data/mixed"
+  experiments: "experiments"
+
+# ── Audio Preprocessing ────────────────────────────────────
+audio:
+  sample_rate: 4000        # Hz — sufficient for heart/lung sounds
+  segment_length: 3.0      # seconds per clip
+  n_fft: 512
+  hop_length: 128
+  n_mels: 64               # mel-spectrogram bands
+
+# ── Mixing Strategy ────────────────────────────────────────
+mixing:
+  snr_min_db: -5           # minimum signal-to-noise ratio
+  snr_max_db: 5            # maximum signal-to-noise ratio
+
+# ── Training ───────────────────────────────────────────────
+training:
+  batch_size: 16
+  num_epochs: 100
+  learning_rate: 0.001
+  val_split: 0.15
+  test_split: 0.15
+  seed: 42
+
+# ── Model ──────────────────────────────────────────────────
+model:
+  name: "vae"              # options: vae, cvae, diffusion
+  latent_dim: 128

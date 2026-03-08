@@ -1,0 +1,28 @@
+# Virtual environment
+venv/
+
+# Data (too large for git)
+data/
+
+# Experiments and model checkpoints
+experiments/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
