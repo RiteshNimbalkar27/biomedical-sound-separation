@@ -1,41 +1,80 @@
-# ── Project Paths ──────────────────────────────────────────
+# ==================================================================
+# Biomedical Sound Separation -- Base Config
+# ==================================================================
+
+# -- Project Paths -------------------------------------------------
 paths:
-  raw_physionet: "data/raw/physionet"
-  raw_icbhi: "data/raw/icbhi"
-  processed: "data/processed"
-  mixed: "data/mixed"
-  experiments: "experiments"
+  raw_physionet : "data/raw/physionet"
+  raw_icbhi     : "data/raw/icbhi"
+  processed     : "data/processed"
+  mixed         : "data/mixed"
+  experiments   : "experiments"
 
-# ── Audio Preprocessing ────────────────────────────────────
+# -- Audio Preprocessing -------------------------------------------
 audio:
-  sample_rate: 4000
-  segment_length: 3.0
-  overlap: 1.0
-  n_fft: 512
-  hop_length: 128
-  n_mels: 64
+  sample_rate    : 4000
+  segment_length : 3.0
+  overlap        : 1.0
+  n_fft          : 512
+  hop_length     : 128
+  n_mels         : 64
 
-# ── Mixing Strategy ────────────────────────────────────────
+# -- Mixing Strategy -----------------------------------------------
 mixing:
-  snr_min_db: -5
-  snr_max_db: 5
+  snr_min_db     : -5
+  snr_max_db     :  5
 
-# ── Training ───────────────────────────────────────────────
+# -- Training ------------------------------------------------------
 training:
-  batch_size: 16
-  num_epochs: 100
-  learning_rate: 0.001
-  val_split: 0.15
-  test_split: 0.15
-  seed: 42
+  batch_size             : 16
+  num_epochs             : 50
+  learning_rate          : 0.0003
+  val_split              : 0.15
+  test_split             : 0.15
+  seed                   : 42
+  optimizer              : "adam"
+  weight_decay           : 0.00001
+  scheduler              : "plateau"
+  scheduler_patience     : 8
+  scheduler_factor       : 0.5
+  early_stopping_patience  : 15
+  early_stopping_min_delta : 0.0001
+  grad_clip_norm         : 1.0
+  save_every             : 10
+  keep_best_only         : false
 
-# ── Model ──────────────────────────────────────────────────
+# -- VAE Loss ------------------------------------------------------
+loss:
+  recon_weight      : 1.0
+  kl_weight_max     : 0.01     # was 1.0 — way too high for audio VAEs
+  kl_warmup_epochs  : 30       # was 20 — give it more time
+  free_bits         : 0.5      # NEW — prevents posterior collapse
+  kl_schedule       : "cosine" # NEW — smoother than linear
+
+# -- Model ---------------------------------------------------------
 model:
-  # options:
-  #   vae        → Variational Autoencoder (start here)
-  #   cvae       → Conditional VAE
-  #   vqvae      → Vector Quantized VAE
-  #   unet       → U-Net masking (discriminative baseline)
-  #   diffusion  → Diffusion model (Colab only)
-  name: "vae"
-  latent_dim: 128
+  name          : "vae"
+  latent_dim    : 128
+  base_channels : 32
+
+# -- DataLoader ----------------------------------------------------
+dataloader:
+  num_workers        : 0
+  pin_memory         : true
+  prefetch_factor    : null
+  persistent_workers : false
+
+# -- Evaluation ----------------------------------------------------
+evaluation:
+  metrics:
+    - "si_sdr"
+    - "sdr"
+    - "lsd"
+    - "mse"
+    - "spec_conv"
+  eval_every : 5
+
+# -- Logging -------------------------------------------------------
+logging:
+  level       : "INFO"
+  log_to_file : false

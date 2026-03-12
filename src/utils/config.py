@@ -55,7 +55,7 @@ def load_config(config_path: str = "configs/base_config.yaml") -> Config:
             f"Make sure you are running from the project root directory."
         )
 
-    with open(path, "r") as f:
+    with open(path, "r", encoding="utf-8") as f:
         config_dict = yaml.safe_load(f)
 
     return Config(config_dict)

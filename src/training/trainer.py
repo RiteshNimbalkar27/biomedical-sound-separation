@@ -131,9 +131,10 @@ class VAETrainer:
 
         # ── Loss ──────────────────────────────────────────────
         self.criterion = VAELoss(
-            warmup_epochs = 20,
-            max_kl_weight = 1.0,
-            recon_weight  = 1.0,
+            warmup_epochs = self.cfg.loss.kl_warmup_epochs,  # 30
+            max_kl_weight = self.cfg.loss.kl_weight_max,     # 0.01
+            recon_weight  = self.cfg.loss.recon_weight,      # 1.0
+            free_bits     = self.cfg.loss.free_bits,         # 0.5
         )
 
         # ── Optimizer ─────────────────────────────────────────
