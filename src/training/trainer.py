@@ -11,8 +11,13 @@ Responsibilities:
     - Learning rate scheduling
 
 Usage:
-    trainer = VAETrainer(model, config_path="configs/base_config.yaml")
+    python -m src.training.trainer
+    — or —
+    python -c "
+    from src.training.trainer import VAETrainer
+    trainer = VAETrainer(config_path='configs/base_config.yaml', experiment='vae_exp2')
     trainer.train()
+    "
 ─────────────────────────────────────────────────────────────────
 """
 
@@ -43,11 +48,11 @@ class EarlyStopping:
         min_delta : Minimum improvement to count as progress.
     """
 
-    def __init__(self, patience: int = 15, min_delta: float = 1e-4):
-        self.patience   = patience
-        self.min_delta  = min_delta
-        self.counter    = 0
-        self.best_loss  = float("inf")
+    def __init__(self, patience: int = 25, min_delta: float = 1e-4):
+        self.patience    = patience
+        self.min_delta   = min_delta
+        self.counter     = 0
+        self.best_loss   = float("inf")
         self.should_stop = False
 
     def step(self, val_loss: float) -> bool:
@@ -110,7 +115,7 @@ class VAETrainer:
             )
 
         # ── Experiment directory ───────────────────────────────
-        self.exp_dir = resolve_path("experiments") / experiment
+        self.exp_dir  = resolve_path("experiments") / experiment
         self.ckpt_dir = self.exp_dir / "checkpoints"
         self.log_dir  = self.exp_dir / "logs"
 
@@ -120,53 +125,60 @@ class VAETrainer:
         logger.info(f"Experiment dir : {self.exp_dir}")
 
         # ── Model ─────────────────────────────────────────────
+        # latent_dim now reads from config (256 for exp2, 128 for baseline)
         self.model = BioSoundVAE(
             latent_dim    = self.cfg.model.latent_dim,
-            base_channels = 32,
+            base_channels = self.cfg.model.base_channels,   # ← reads from config
             input_size    = (self.cfg.audio.n_mels, 94),
         ).to(self.device)
 
         total_params = sum(p.numel() for p in self.model.parameters())
         logger.info(f"Model params   : {total_params:,}")
+        logger.info(f"Latent dim     : {self.cfg.model.latent_dim}")
 
         # ── Loss ──────────────────────────────────────────────
+        # All values driven by config — no hardcoding
         self.criterion = VAELoss(
-            warmup_epochs = self.cfg.loss.kl_warmup_epochs,  # 30
-            max_kl_weight = self.cfg.loss.kl_weight_max,     # 0.01
-            recon_weight  = self.cfg.loss.recon_weight,      # 1.0
-            free_bits     = self.cfg.loss.free_bits,         # 0.5
+            warmup_epochs = self.cfg.loss.kl_warmup_epochs,
+            max_kl_weight = self.cfg.loss.kl_weight_max,
+            recon_weight  = self.cfg.loss.recon_weight,
+            free_bits     = self.cfg.loss.free_bits,
         )
 
         # ── Optimizer ─────────────────────────────────────────
         self.optimizer = torch.optim.Adam(
             self.model.parameters(),
             lr           = self.cfg.training.learning_rate,
-            weight_decay = 1e-5,
+            weight_decay = self.cfg.training.weight_decay,  # ← reads from config
         )
 
-                # ── LR Scheduler ──────────────────────────────────────
+        # ── LR Scheduler ──────────────────────────────────────
         # Reduce LR when val loss plateaus
         self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
             self.optimizer,
             mode     = "min",
-            factor   = 0.5,
-            patience = 8,
+            factor   = self.cfg.training.scheduler_factor,    # ← reads from config
+            patience = self.cfg.training.scheduler_patience,  # ← reads from config
         )
 
         # ── Early stopping ────────────────────────────────────
-        self.early_stopping = EarlyStopping(patience=15, min_delta=1e-4)
+        # patience now reads from config (25 for exp2, was 15)
+        self.early_stopping = EarlyStopping(
+            patience  = self.cfg.training.early_stopping_patience,   # ← reads from config
+            min_delta = self.cfg.training.early_stopping_min_delta,  # ← reads from config
+        )
 
         # ── DataLoaders ───────────────────────────────────────
         logger.info("Loading dataloaders...")
         self.loaders = get_all_dataloaders(config_path)
 
         # ── Training state ────────────────────────────────────
-        self.start_epoch  = 0
+        self.start_epoch   = 0
         self.best_val_loss = float("inf")
         self.history = {
-            "train_loss": [], "val_loss": [],
-            "train_recon": [], "val_recon": [],
-            "train_kl": [],   "val_kl": [],
+            "train_loss"  : [], "val_loss"   : [],
+            "train_recon" : [], "val_recon"  : [],
+            "train_kl"    : [], "val_kl"     : [],
         }
 
     # ── Training Loop ─────────────────────────────────────────────────────────
@@ -179,6 +191,9 @@ class VAETrainer:
         logger.info(f"  Epochs     : {self.cfg.training.num_epochs}")
         logger.info(f"  Batch size : {self.cfg.training.batch_size}")
         logger.info(f"  LR         : {self.cfg.training.learning_rate}")
+        logger.info(f"  Latent dim : {self.cfg.model.latent_dim}")
+        logger.info(f"  KL warmup  : {self.cfg.loss.kl_warmup_epochs} epochs")
+        logger.info(f"  ES patience: {self.cfg.training.early_stopping_patience}")
         logger.info("=" * 55)
 
         for epoch in range(self.start_epoch, self.cfg.training.num_epochs):
@@ -213,10 +228,10 @@ class VAETrainer:
                 )
 
             # ── Save periodic checkpoint every 10 epochs ──────
-            if (epoch + 1) % 10 == 0:
+            if (epoch + 1) % self.cfg.training.save_every == 0:
                 self._save_checkpoint(epoch, val_metrics["total"], is_best=False)
 
-            # ── Early stopping ────────────────────────────────
+            # ── Early stopping check ──────────────────────────
             if self.early_stopping.step(val_metrics["total"]):
                 logger.info(
                     f"Early stopping triggered at epoch {epoch + 1}"
@@ -229,7 +244,6 @@ class VAETrainer:
         logger.info(f"  Checkpoints   : {self.ckpt_dir}")
         logger.info("=" * 55)
 
-        # Save training history
         self._save_history()
 
     # ── Single Train Epoch ────────────────────────────────────────────────────
@@ -264,27 +278,27 @@ class VAETrainer:
             loss_dict["total"].backward()
 
             # Gradient clipping — prevents exploding gradients
-            nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
+            nn.utils.clip_grad_norm_(
+                self.model.parameters(),
+                max_norm = self.cfg.training.grad_clip_norm
+            )
 
             self.optimizer.step()
 
             # ── Accumulate metrics ────────────────────────────
             for k in totals:
                 if k in loss_dict:
-                    val = loss_dict[k]
-                    totals[k] += (
-                        val.item() if isinstance(val, torch.Tensor) else val
-                    )
+                    v = loss_dict[k]
+                    totals[k] += (v.item() if isinstance(v, torch.Tensor) else v)
 
             # Update progress bar
             pbar.set_postfix({
-                "loss" : f"{loss_dict['total'].item():.4f}",
-                "recon": f"{loss_dict['recon'].item():.4f}",
-                "kl"   : f"{loss_dict['kl'].item():.4f}",
-                "kl_w" : f"{loss_dict['kl_weight']:.2f}",
+                "loss"  : f"{loss_dict['total'].item():.4f}",
+                "recon" : f"{loss_dict['recon'].item():.4f}",
+                "kl"    : f"{loss_dict['kl'].item():.4f}",
+                "kl_w"  : f"{loss_dict['kl_weight']:.3f}",
             })
 
-        # Average over batches
         return {k: v / n_batches for k, v in totals.items()}
 
     # ── Single Val Epoch ──────────────────────────────────────────────────────
@@ -316,13 +330,11 @@ class VAETrainer:
 
                 for k in totals:
                     if k in loss_dict:
-                        val = loss_dict[k]
-                        totals[k] += (
-                            val.item() if isinstance(val, torch.Tensor) else val
-                        )
+                        v = loss_dict[k]
+                        totals[k] += (v.item() if isinstance(v, torch.Tensor) else v)
 
                 pbar.set_postfix({
-                    "val_loss" : f"{loss_dict['total'].item():.4f}",
+                    "val_loss": f"{loss_dict['total'].item():.4f}",
                 })
 
         return {k: v / n_batches for k, v in totals.items()}
@@ -331,9 +343,9 @@ class VAETrainer:
 
     def _log_epoch(
         self,
-        epoch: int,
-        train: dict,
-        val: dict,
+        epoch : int,
+        train : dict,
+        val   : dict,
     ):
         """Log a clean one-line summary for the epoch."""
         lr = self.optimizer.param_groups[0]["lr"]
@@ -351,28 +363,31 @@ class VAETrainer:
 
     def _save_checkpoint(
         self,
-        epoch: int,
-        val_loss: float,
-        is_best: bool = False,
+        epoch    : int,
+        val_loss : float,
+        is_best  : bool = False,
     ):
-        """Save model checkpoint."""
+        """Save model checkpoint with full config for reproducibility."""
         state = {
             "epoch"          : epoch + 1,
             "model_state"    : self.model.state_dict(),
             "optimizer_state": self.optimizer.state_dict(),
             "scheduler_state": self.scheduler.state_dict(),
             "val_loss"       : val_loss,
+            "experiment"     : self.experiment,
             "config"         : {
                 "latent_dim"   : self.cfg.model.latent_dim,
+                "base_channels": self.cfg.model.base_channels,
                 "n_mels"       : self.cfg.audio.n_mels,
                 "sample_rate"  : self.cfg.audio.sample_rate,
             },
         }
 
-        if is_best:
-            path = self.ckpt_dir / "best_model.pt"
-        else:
-            path = self.ckpt_dir / f"checkpoint_epoch{epoch+1:03d}.pt"
+        path = (
+            self.ckpt_dir / "best_model.pt"
+            if is_best
+            else self.ckpt_dir / f"checkpoint_epoch{epoch+1:03d}.pt"
+        )
 
         torch.save(state, path)
 
@@ -381,7 +396,7 @@ class VAETrainer:
         Load a saved checkpoint to resume training.
 
         Args:
-            checkpoint_path: Path to the .pt checkpoint file.
+            checkpoint_path: Path to .pt checkpoint file.
         """
         logger.info(f"Loading checkpoint: {checkpoint_path}")
         state = torch.load(checkpoint_path, map_location=self.device)
@@ -400,10 +415,10 @@ class VAETrainer:
     # ── History ───────────────────────────────────────────────────────────────
 
     def _save_history(self):
-        """Save training history to a numpy file."""
-        history_path = self.exp_dir / "training_history.npy"
-        np.save(str(history_path), self.history)
-        logger.info(f"Training history saved to {history_path}")
+        """Save training history to numpy file."""
+        path = self.exp_dir / "training_history.npy"
+        np.save(str(path), self.history)
+        logger.info(f"Training history saved to {path}")
 
 
 # ── Entry Point ───────────────────────────────────────────────────────────────
@@ -411,6 +426,6 @@ class VAETrainer:
 if __name__ == "__main__":
     trainer = VAETrainer(
         config_path = "configs/base_config.yaml",
-        experiment  = "vae_baseline",
+        experiment  = "vae_exp2_latent256_weighted_loss",  # ← new experiment name
     )
     trainer.train()
