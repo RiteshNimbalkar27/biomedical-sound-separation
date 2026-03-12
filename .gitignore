@@ -1,8 +1,8 @@
 # ── Data — never push to GitHub ──────────────────
-data/
-experiments/
+/data/
+/experiments/
 
-# ── Python ────────────────────────────────────────
+# ── Python cache — never push ────────────────────
 __pycache__/
 *.py[cod]
 *.pyo
