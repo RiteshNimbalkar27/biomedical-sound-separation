@@ -1,0 +1,33 @@
+[2026-03-09 01:29:58,573] INFO - __main__ - mixer.py:295: =======================================================
+[2026-03-09 01:29:58,573] INFO - __main__ - mixer.py:296:   Biomedical Sound Separation — Mixing Pipeline
+[2026-03-09 01:29:58,574] INFO - __main__ - mixer.py:297: =======================================================
+[2026-03-09 01:29:58,574] INFO - __main__ - mixer.py:298: Heart dir  : D:\Code\Edai\Sem6\biomedical-sound-separation\data\processed\heart
+[2026-03-09 01:29:58,574] INFO - __main__ - mixer.py:299: Lung dir   : D:\Code\Edai\Sem6\biomedical-sound-separation\data\processed\lung
+[2026-03-09 01:29:58,574] INFO - __main__ - mixer.py:300: Output dir : D:\Code\Edai\Sem6\biomedical-sound-separation\data\mixed
+[2026-03-09 01:29:58,574] INFO - __main__ - mixer.py:301: SNR range  : [-5, 5] dB
+[2026-03-09 01:29:58,574] INFO - __main__ - mixer.py:302: Splits     : val=0.15 | test=0.15
+[2026-03-09 01:29:58,575] INFO - __main__ - mixer.py:303: =======================================================
+[2026-03-09 01:29:59,086] INFO - __main__ - mixer.py:178: Heart segments available : 33122
+[2026-03-09 01:29:59,086] INFO - __main__ - mixer.py:179: Lung  segments available : 8965
+[2026-03-09 01:29:59,100] INFO - __main__ - mixer.py:186: Heart split → Train: 23186 | Val: 4968 | Test: 4968
+[2026-03-09 01:29:59,104] INFO - __main__ - mixer.py:194: Lung  split → Train: 6277 | Val: 1344 | Test: 1344
+[2026-03-09 01:29:59,105] INFO - __main__ - mixer.py:207: 
+Mixing split: TRAIN
+[2026-03-09 01:36:53,400] INFO - __main__ - mixer.py:277:   Pairs saved  : 23186
+[2026-03-09 01:36:53,401] INFO - __main__ - mixer.py:278:   Pairs failed : 0
+[2026-03-09 01:36:53,401] INFO - __main__ - mixer.py:207: 
+Mixing split: VAL
+[2026-03-09 01:38:05,486] INFO - __main__ - mixer.py:277:   Pairs saved  : 4968
+[2026-03-09 01:38:05,486] INFO - __main__ - mixer.py:278:   Pairs failed : 0
+[2026-03-09 01:38:05,486] INFO - __main__ - mixer.py:207: 
+Mixing split: TEST
+[2026-03-09 01:39:05,327] INFO - __main__ - mixer.py:277:   Pairs saved  : 4968
+[2026-03-09 01:39:05,327] INFO - __main__ - mixer.py:278:   Pairs failed : 0
+[2026-03-09 01:39:05,384] INFO - __main__ - mixer.py:316: 
+=======================================================
+[2026-03-09 01:39:05,384] INFO - __main__ - mixer.py:317:   Mixing Complete — Final Summary
+[2026-03-09 01:39:05,385] INFO - __main__ - mixer.py:318: =======================================================
+[2026-03-09 01:39:05,385] INFO - __main__ - mixer.py:320:   TRAIN  → 23186 pairs saved
+[2026-03-09 01:39:05,385] INFO - __main__ - mixer.py:320:   VAL    → 4968 pairs saved
+[2026-03-09 01:39:05,386] INFO - __main__ - mixer.py:320:   TEST   → 4968 pairs saved
+[2026-03-09 01:39:05,386] INFO - __main__ - mixer.py:321: =======================================================

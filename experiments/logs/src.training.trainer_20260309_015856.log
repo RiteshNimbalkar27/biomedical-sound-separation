@@ -1,0 +1,4 @@
+[2026-03-09 01:58:57,261] INFO - src.training.trainer - trainer.py:104: Device : cuda
+[2026-03-09 01:58:57,264] INFO - src.training.trainer - trainer.py:107: GPU    : NVIDIA GeForce RTX 3050 Laptop GPU | VRAM: 4.3 GB
+[2026-03-09 01:58:57,265] INFO - src.training.trainer - trainer.py:120: Experiment dir : D:\Code\Edai\Sem6\biomedical-sound-separation\experiments\vae_test
+[2026-03-09 01:58:57,358] INFO - src.training.trainer - trainer.py:130: Model params   : 2,610,082

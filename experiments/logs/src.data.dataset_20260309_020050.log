@@ -1,0 +1,6 @@
+[2026-03-09 02:00:52,242] INFO - src.data.dataset - dataset.py:95: BioSoundDataset [train] — 23186 pairs loaded
+[2026-03-09 02:00:52,243] INFO - src.data.dataset - dataset.py:250: DataLoader [train] — 23186 samples | batch_size=16 | 1449 batches
+[2026-03-09 02:00:52,280] INFO - src.data.dataset - dataset.py:95: BioSoundDataset [val] — 4968 pairs loaded
+[2026-03-09 02:00:52,281] INFO - src.data.dataset - dataset.py:250: DataLoader [val] — 4968 samples | batch_size=16 | 311 batches
+[2026-03-09 02:00:52,317] INFO - src.data.dataset - dataset.py:95: BioSoundDataset [test] — 4968 pairs loaded
+[2026-03-09 02:00:52,318] INFO - src.data.dataset - dataset.py:250: DataLoader [test] — 4968 samples | batch_size=16 | 311 batches
