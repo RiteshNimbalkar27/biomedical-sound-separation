@@ -1,0 +1,5 @@
+VAE Baseline — Test Set Results
+===================================
+Test MSE Heart : 0.005367
+Test MSE Lung  : 0.005262
+Test MSE Avg   : 0.005314
